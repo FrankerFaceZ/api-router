@@ -1,0 +1,28 @@
+{
+	"editor.renderWhitespace": "boundary",
+	"editor.insertSpaces": false,
+
+	"javascript.preferences.quoteStyle": "single",
+	"javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
+
+	"files.eol": "\n",
+	"files.trimTrailingWhitespace": true,
+
+	"files.exclude": {
+		"**/.nyc_output": true,
+		"**/coverage": true,
+		"**/node_modules": true,
+		"**/dist": true,
+	},
+
+	"eslint.autoFixOnSave": true,
+	"eslint.packageManager": "npm",
+
+	"eslint.validate": [
+		"javascript"
+	],
+
+	"mocha.sideBarOptions": {
+		"lens": false
+	}
+}

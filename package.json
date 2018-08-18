@@ -1,0 +1,48 @@
+{
+	"name": "@ffz/api-router",
+	"version": "1.0.0",
+	"description": "A fast router middleware for Koa with support for nesting, associating data with routes, and dynamically assigning middleware based on that data.",
+	"license": "MIT",
+	"main": "lib/router.js",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/frankerfacez/api-router.git"
+	},
+	"bugs": {
+		"url": "https://github.com/frankerfacez/api-router/issues"
+	},
+	"files": [
+		"lib"
+	],
+	"author": "SirStendec <sir@stendec.me>",
+	"keywords": [
+		"koa",
+		"middleware",
+		"router",
+		"route"
+	],
+	"scripts": {
+		"eslint": "eslint --fix \"lib/**/*.js\"",
+		"test": "cross-env NODE_ENV=test mocha",
+		"test-cov": "cross-env NODE_ENV=test nyc mocha --"
+	},
+	"devDependencies": {
+		"chai": "^4.1.2",
+		"chai-as-promised": "^7.1.1",
+		"chai-http": "^4.0.0",
+		"cross-env": "^5.2.0",
+		"eslint": "^5.3.0",
+		"eslint-plugin-mocha": "^5.1.0",
+		"joi": "^13.6.0",
+		"koa": "^2.5.2",
+		"koa-body": "^4.0.4",
+		"mocha": "^5.2.0",
+		"nyc": "^12.0.2"
+	},
+	"dependencies": {
+		"find-my-way": "^1.15.1",
+		"methods": "^1.1.2",
+		"path-to-regexp": "^2.2.1",
+		"reusify": "^1.0.4"
+	}
+}
