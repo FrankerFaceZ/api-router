@@ -7,18 +7,14 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-        key: dependency-cache-{{ checksum "package-lock.json" }}
+          key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
-        name: Install Dependencies
-        command: npm install
+          name: Install Dependencies
+          command: npm install
       - save_cache:
-        key: dependency-cache-{{ checksum "package-lock.json" }}
-        paths:
-          - node_modules/
-      - persist_to_workspace:
-        root: /tmp
-        paths:
-          - api-router/*
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules/
       - run:
-        name: Lint
-        command: npm test
+          name: Lint
+          command: npm test
