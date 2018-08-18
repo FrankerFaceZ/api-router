@@ -12,7 +12,7 @@
 		"url": "https://github.com/frankerfacez/api-router/issues"
 	},
 	"files": [
-		"lib"
+		"lib/**/*.js"
 	],
 	"author": "SirStendec <sir@stendec.me>",
 	"keywords": [
@@ -44,5 +44,8 @@
 		"methods": "^1.1.2",
 		"path-to-regexp": "^2.2.1",
 		"reusify": "^1.0.4"
+	},
+	"engine": {
+		"node": ">= 8"
 	}
 }
