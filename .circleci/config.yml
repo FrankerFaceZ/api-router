@@ -1,14 +1,14 @@
 version: 2
 jobs:
-  lint:
+  build:
     working_directory: ~/repo
     docker:
       - image: circleci/node:8
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package-lock.json" }}
-      -run:
+        key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
         name: Install Dependencies
         command: npm install
       - save_cache:
