@@ -1,15 +1,9 @@
-defaults: &defaults
-  working_directory: /tmp/api-router
-  docker:
-    - image: circleci/node:8
-
 version: 2
 jobs:
-  setup:
+  lint:
     working_directory: ~/repo
     docker:
       - image: circleci/node:8
-
     steps:
       - checkout
       - restore_cache:
