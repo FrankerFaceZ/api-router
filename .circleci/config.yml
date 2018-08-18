@@ -1,3 +1,5 @@
+default:
+
 version: 2
 jobs:
   build:
@@ -18,3 +20,6 @@ jobs:
       - run:
           name: Lint
           command: npm test
+      - run:
+          name: Coverage
+          command: npm run coverage
