@@ -4,6 +4,7 @@
 	"description": "A fast router middleware for Koa with support for nesting, associating data with routes, and dynamically assigning middleware based on that data.",
 	"license": "MIT",
 	"main": "lib/router.js",
+	"homepage": "https://frankerfacez.github.io/api-router/",
 	"repository": {
 		"type": "git",
 		"url": "git://github.com/frankerfacez/api-router.git"

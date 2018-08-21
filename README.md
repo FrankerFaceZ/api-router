@@ -28,6 +28,10 @@ Routing middleware for [Koa](https://koajs.com/).
 $ npm install @ffz/api-router --save
 ```
 
+## Documentation
+
+* [API Documentation](https://frankerfacez.github.io/api-router/)
+
 ## Basic Usage
 
 ```javascript
@@ -61,7 +65,7 @@ const router = new Router();
 router.useData('cache', options => {
     const duration = options.duration || 120;
 
-    return (ctx, next) => {
+    return async (ctx, next) => {
         const key = ctx.url,
             cached = await redis.hgetall(key);
 
