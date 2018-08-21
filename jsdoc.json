@@ -16,6 +16,7 @@
 		"cleverLinks": true
 	},
 	"docdash": {
+		"typedefs": true,
 		"menu": {
 			"GitHub": {
 				"href": "https://github.com/FrankerFaceZ/api-router"

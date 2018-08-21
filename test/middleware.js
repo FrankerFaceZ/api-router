@@ -199,6 +199,21 @@ describe('middleware', function() {
 			res.status.should.eql(200);
 			res.type.should.eql('application/json');
 			res.body.success.should.eql(true);
+		});
+
+		it('uses middleware from parent routers', async function() {
+			const {router, req} = setup(),
+				r2 = new Router();
+
+			router.use(r2);
+
+			router.use(SUCCESS);
+			r2.get('/', NO_SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
 		})
 	});
 
@@ -332,6 +347,44 @@ describe('middleware', function() {
 
 			res = await req().get('/yes/test').send();
 			res.status.should.eql(500);
+		});
+
+		it('works from parent routers', async function() {
+			const {router, req} = setup();
+			const r2 = Router();
+
+			router.use(r2);
+			router.param('test', (val, ctx) => {
+				ctx.body = {
+					success: true
+				}
+			});
+
+			r2.get('/:test', NO_SUCCESS);
+
+			const res = await req().get('/test').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+		});
+
+		it('works from nested routers', async function() {
+			const {router, req} = setup();
+			const r2 = Router();
+
+			router.use(r2);
+			r2.param('test', (val, ctx) => {
+				ctx.body = {
+					success: true
+				}
+			});
+
+			r2.get('/:test', NO_SUCCESS);
+
+			const res = await req().get('/test').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
 		})
 	});
 })

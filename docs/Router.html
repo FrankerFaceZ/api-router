@@ -349,7 +349,7 @@
                 </td>
             
 
-            <td class="description last"><p>If this is true, middleware registered for specific params will run before dataware.</p></td>
+            <td class="description last"><p>If this is true, middleware registered for specific params will run before data-based middleware.</p></td>
         </tr>
 
     
@@ -365,7 +365,7 @@
 <span class="param-type">Boolean</span>
 |
 
-<span class="param-type">function</span>
+<span class="param-type"><a href="Router.html#~dataMiddleware">Router~dataMiddleware</a></span>
 
 
             
@@ -405,7 +405,7 @@
 <span class="param-type">Boolean</span>
 |
 
-<span class="param-type">function</span>
+<span class="param-type"><a href="Router.html#~handleOptions">Router~handleOptions</a></span>
 
 
             
@@ -445,7 +445,7 @@
 <span class="param-type">Boolean</span>
 |
 
-<span class="param-type">function</span>
+<span class="param-type"><a href="Router.html#~handleOptions">Router~handleOptions</a></span>
 
 
             
@@ -534,7 +534,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line506">line 506</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line570">line 570</a>
     </li></ul></dd>
     
 
@@ -726,7 +726,7 @@ mirrors that used by <a href="https://github.com/pillarjs/path-to-regexp">path-t
 
             
 
-            <td class="description last"><p>Optional data to associate with the route, including a name and data for dataware.</p></td>
+            <td class="description last"><p>Optional data to associate with the route, including a name and data for data-based middleware.</p></td>
         </tr>
 
     
@@ -820,7 +820,7 @@ mirrors that used by <a href="https://github.com/pillarjs/path-to-regexp">path-t
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line83">line 83</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line133">line 133</a>
     </li></ul></dd>
     
 
@@ -932,7 +932,7 @@ app.use(router.middleware())</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line793">line 793</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line857">line 857</a>
     </li></ul></dd>
     
 
@@ -1171,7 +1171,7 @@ function correctly if the built-in mount middleware is disabled.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line848">line 848</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line912">line 912</a>
     </li></ul></dd>
     
 
@@ -1384,7 +1384,7 @@ router.nest(users);</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line764">line 764</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line828">line 828</a>
     </li></ul></dd>
     
 
@@ -1574,7 +1574,7 @@ router.get('/user/:userID', ctx => {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line558">line 558</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line622">line 622</a>
     </li></ul></dd>
     
 
@@ -1756,7 +1756,7 @@ router.get('/user/:userID', ctx => {
 
             
 
-            <td class="description last"><p>Optional data to associate with the route, including a name and data for dataware.</p></td>
+            <td class="description last"><p>Optional data to associate with the route, including a name and data for data-based middleware.</p></td>
         </tr>
 
     
@@ -1850,7 +1850,7 @@ router.get('/user/:userID', ctx => {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line730">line 730</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line794">line 794</a>
     </li></ul></dd>
     
 
@@ -2065,7 +2065,7 @@ the provided key should be exclusive.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line706">line 706</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line770">line 770</a>
     </li></ul></dd>
     
 
@@ -2279,7 +2279,7 @@ execute first.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line922">line 922</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line991">line 991</a>
     </li></ul></dd>
     
 
@@ -2325,6 +2325,10 @@ a shortcut for accessing other routes in the same namespace, you can start
 the name passed to <code>urlFor</code> with a period.</p>
 <p><code>urlFor</code> is assigned to the current Koa context and should be used there
 to ensure namespaces work correctly.</p>
+<p>Once the URL has been built (using
+<a href="https://github.com/pillarjs/path-to-regexp">path-to-regexp</a>) that generated
+URL and any left over parameters are merged into <code>options</code> and the structure
+is passed to <a href="https://nodejs.org/api/url.html#url_url_format_urlobject">url.format()</a></p>
 </div>
 
 
@@ -2588,7 +2592,7 @@ will be added as a query parameter.</p></td>
 
     
 
-    <h4 class="name" id="use"><span class="type-signature"></span>use<span class="signature">(path<span class="signature-attributes">opt</span>, middleware)</span><span class="type-signature"> &rarr; {<a href="Router.html">Router</a>}</span></h4>
+    <h4 class="name" id="use"><span class="type-signature"></span>use<span class="signature">(path<span class="signature-attributes">opt</span>, &hellip;middleware)</span><span class="type-signature"> &rarr; {<a href="Router.html">Router</a>}</span></h4>
 
     
 
@@ -2600,7 +2604,7 @@ will be added as a query parameter.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line608">line 608</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line672">line 672</a>
     </li></ul></dd>
     
 
@@ -2747,6 +2751,8 @@ router.use(anotherRouter);</code></pre>
                 
 
                 
+                    &lt;repeatable><br>
+                
                 </td>
             
 
@@ -2813,7 +2819,7 @@ router.use(anotherRouter);</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line671">line 671</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line735">line 735</a>
     </li></ul></dd>
     
 
@@ -3068,6 +3074,422 @@ sorting to determine which to apply first. Lower values execute first.</p></td>
     
 
     
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+
+    
+
+    <h4 class="name" id="~dataMiddleware"><span class="type-signature"></span>dataMiddleware<span class="signature">(data, route, _store)</span><span class="type-signature"> &rarr; {function}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line95">line 95</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>A factory for Koa middleware, acting off of data attached to a specific route.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>router.useData('database', options => {
+    const connection = database.getConnection(options);
+
+    return async (ctx, next) => {
+        const cursor = connection.getCursor();
+        ctx.db = cursor;
+        try {
+            await next();
+        } finally {
+            cursor.close();
+            ctx.db = null;
+        }
+    }
+});</code></pre>
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The data attached to a route that triggered the instantiation of this
+data-ware middleware.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>route</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The applicable route</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>_store</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The internal data store for the route.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Koa Middleware</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="~handleOptions"><span class="type-signature"></span>handleOptions<span class="signature">(ctx, next, store)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line74">line 74</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>A Koa middleware function that has an additional parameter containing the internal
+route data, called when a route is matched but the requested method has no handler.</p>
+<p>These functions are used for generating <code>405 Method Not Allowed</code> responses, as well
+as responses to <code>OPTIONS</code> requests.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>const router = Router({
+    handleOptions: (ctx, next, store) => {
+        ctx.set('Allow', Object.keys(store).join(', ').toUpperCase());
+        ctx.status = 204;
+    }
+})</code></pre>
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>ctx</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The Koa Context</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>next</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The next middleware in the stack</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>store</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The internal route object, with keys for each handled method</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+    
 
     
 </article>
@@ -3084,7 +3506,7 @@ sorting to determine which to apply first. Lower values execute first.</p></td>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 20 2018 20:21:30 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 21 2018 01:46:43 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

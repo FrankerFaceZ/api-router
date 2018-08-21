@@ -65,10 +65,10 @@ module.exports = Router;
  * @param {String} [opts.name] An optional name for this router. Used when resolving a route for URL generation.
  * @param {String} [opts.prefix] An optional prefix to apply to all routes for this Router.
  * @param {Object} [opts.findMyWay] Options to provide to the internal find-my-way router.
- * @param {Boolean} [opts.paramwareBeforeDataware=false] If this is true, middleware registered for specific params will run before dataware.
- * @param {Boolean|Function} [opts.mountMiddleware] Middleware to use for {@link Router#mount} instead of {@link Mount}. If set to false, this will disable the automatic `mount` data-based middleware. As a result, {@link Router#mount} will not function correctly.
- * @param {Boolean|Function} [opts.handleOptions] Whether or not to handle OPTIONS requests. Optionally takes a function to handle OPTIONS.
- * @param {Boolean|Function} [opts.handle405] Whether or not to generate 405 responses when there are no matching methods for a route. Optionally takes a function to handle 405s.
+ * @param {Boolean} [opts.paramwareBeforeDataware=false] If this is true, middleware registered for specific params will run before data-based middleware.
+ * @param {Boolean|Router~dataMiddleware} [opts.mountMiddleware] Middleware to use for {@link Router#mount} instead of {@link Mount}. If set to false, this will disable the automatic `mount` data-based middleware. As a result, {@link Router#mount} will not function correctly.
+ * @param {Boolean|Router~handleOptions} [opts.handleOptions] Whether or not to handle OPTIONS requests. Optionally takes a function to handle OPTIONS.
+ * @param {Boolean|Router~handleOptions} [opts.handle405] Whether or not to generate 405 responses when there are no matching methods for a route. Optionally takes a function to handle 405s.
  */
 function Router(opts) {
 	if ( !(this instanceof Router) )
@@ -110,7 +110,57 @@ function Router(opts) {
 	this._routes = {};
 	this._named = {};
 	this._middlewares = {};
+
+	this._live = false;
 }
+
+/**
+ * A Koa middleware function that has an additional parameter containing the internal
+ * route data, called when a route is matched but the requested method has no handler.
+ *
+ * These functions are used for generating `405 Method Not Allowed` responses, as well
+ * as responses to `OPTIONS` requests.
+ *
+ * @example
+ * const router = Router({
+ *     handleOptions: (ctx, next, store) => {
+ *         ctx.set('Allow', Object.keys(store).join(', ').toUpperCase());
+ *         ctx.status = 204;
+ *     }
+ * })
+ *
+ * @callback Router~handleOptions
+ * @param {Object} ctx The Koa Context
+ * @param {Function} next The next middleware in the stack
+ * @param {Object} store The internal route object, with keys for each handled method
+ */
+
+/**
+ * A factory for Koa middleware, acting off of data attached to a specific route.
+ *
+ * @example
+ * router.useData('database', options => {
+ *     const connection = database.getConnection(options);
+ *
+ *     return async (ctx, next) => {
+ *         const cursor = connection.getCursor();
+ *         ctx.db = cursor;
+ *         try {
+ *             await next();
+ *         } finally {
+ *             cursor.close();
+ *             ctx.db = null;
+ *         }
+ *     }
+ * });
+ *
+ * @callback Router~dataMiddleware
+ * @param {*} data The data attached to a route that triggered the instantiation of this
+ * data-ware middleware.
+ * @param {String} route The applicable route
+ * @param {Object} _store The internal data store for the route.
+ * @returns {Function} Koa Middleware
+ */
 
 // Middleware
 
@@ -125,6 +175,11 @@ function Router(opts) {
  */
 Router.prototype.middleware = function() {
 	const router = this;
+
+	if ( ! this._live ) {
+		this._live = true;
+		this._update();
+	}
 
 	// Context URL Generation
 	let pool;
@@ -263,10 +318,14 @@ Router.prototype._updateParents = function() {
  * @private
  */
 Router.prototype._update = function() {
-	if ( this._router )
-		this._router.reset();
-	else
-		this._router = FindMyWay(this.opts.findMyWay);
+	const live = this._live;
+
+	if ( live ) {
+		if ( this._router )
+			this._router.reset();
+		else
+			this._router = FindMyWay(this.opts.findMyWay);
+	}
 
 	const prefix = this.opts.prefix || '',
 		name = this.opts.name,
@@ -302,15 +361,6 @@ Router.prototype._update = function() {
 		return a - b;
 	});
 
-	// Build functions for our paramware
-	const paramware = {};
-	for(const [param, pwares] of Object.entries(this.paramwares)) {
-		const pws = paramware[param] = [];
-		for(const pw of pwares)
-			pws.push((ctx, next) => pw(ctx.params[param], ctx, next));
-	}
-
-
 	// Now, we want to build our final routing data. This data is kept
 	// on our find-my-way router instance. We're also going to apply
 	// any dataware at this stage.
@@ -321,18 +371,21 @@ Router.prototype._update = function() {
 				.filter(token => typeof token !== 'string')
 				.map(token => token.name),
 
-			matching_pware = [],
+			matching_pware = data._paramware = data._paramware || [],
 			md = this._matchMiddleware(route, middleware_tokens),
 			new_data = {};
 
 		for(const name of route_params) {
-			const pware = paramware[name];
+			const pware = this.paramwares[name];
 			if ( pware )
 				for(const pw of pware)
 					matching_pware.push(pw);
 		}
 
 		for(const [key, d] of Object.entries(data)) {
+			if ( key.startsWith('_') )
+				continue;
+
 			if ( d.options &amp;&amp; d.options.name ) {
 				const name = d.name_prefix ?
 					`${d.name_prefix}.${d.options.name}` :
@@ -341,24 +394,30 @@ Router.prototype._update = function() {
 				named[name] = [route_params, route_fn];
 			}
 
-			const matching_dware = [];
+			const matching_dware = d.dataware = d.dataware || [];
 			for(const [dkey, dware] of dataware) {
 				if ( d.options[dkey] &amp;&amp; ! d.exclusive.includes(dkey) )
 					for(const dw of dware)
-						matching_dware.push(dw(d.options[dkey], route, d));
+						matching_dware.push([dkey, dw]);
 			}
 
 			for(const dkey of this.dataware_exclusive)
 				d.exclusive.push(dkey)
 
-			new_data[key] = Object.assign({}, d, {
-				fn: this.opts.paramwareBeforeDataware ?
-					compose(md, matching_pware, matching_dware, d.middleware) :
-					compose(md, matching_dware, matching_pware, d.middleware)
-			})
+			if ( live ) {
+				const dware = matching_dware.map(([dkey, dw]) =>
+					dw(d.options[dkey], route, d))
+
+				new_data[key] = Object.assign({}, d, {
+					fn: this.opts.paramwareBeforeDataware ?
+						compose(md, matching_pware, dware, d.middleware) :
+						compose(md, dware, matching_pware, d.middleware)
+				})
+			}
 		}
 
-		this._router.on('GET', route, NOOP, new_data);
+		if ( live )
+			this._router.on('GET', route, NOOP, new_data);
 	}
 
 	// Now, let all this trickle down to our parents.
@@ -449,6 +508,11 @@ function mergeRoutes(output, name, prefix, routes) {
 				out = output[prefixed] = output[prefixed] || {};
 
 			for(const [method, rdata] of Object.entries(data[1])) {
+				if ( method.startsWith('_') ) {
+					out[method] = rdata;
+					continue;
+				}
+
 				let name_prefix = rdata.name_prefix;
 				if ( name )
 					name_prefix = name_prefix ? `${name}.${name_prefix}` : name;
@@ -542,7 +606,7 @@ METHODS.concat('all').forEach(method => {
 	* @memberof Router.prototype
 	* @param {String} [name] A name for this route. Equivilent to setting a name key in options.
 	* @param {String|String[]} path A path or multiple paths that these middleware functions will match.
-	* @param {Object} [options] Optional data to associate with the route, including a name and data for dataware.
+	* @param {Object} [options] Optional data to associate with the route, including a name and data for data-based middleware.
 	* @param {...Function} middleware Middleware functions to handle this route.
 	* @returns {Router} The router
 	*/
@@ -594,7 +658,7 @@ Router.prototype.del = Router.prototype['delete'];
  *
  * @param {String|String[]} methods The HTTP methods that these middleware functions can handle.
  * @param {String|String[]} path A path or multiple paths that these middleware functions will match.
- * @param {Object|null} options Optional data to associate with the route, including a name and data for dataware.
+ * @param {Object|null} options Optional data to associate with the route, including a name and data for data-based middleware.
  * @param {...Function} middleware Middleware functions to handle this route.
  * @returns {Router} The Router
  */
@@ -645,7 +709,7 @@ Router.prototype.register = function(methods, path, options, ...middleware) {
  * router.use(anotherRouter);
  *
  * @param {String|String[]} [path] A path or array of paths to limit the middleware to
- * @param {...Function|Router} middleware The middleware function(s) to use
+ * @param {...(Function|Router)} middleware The middleware function(s) to use
  * @returns {Router} The Router
  */
 Router.prototype.use = function(path, ...middleware) {
@@ -814,7 +878,7 @@ Router.prototype.param = function(param, ...middleware) {
 
 	const pws = this.paramwares[param] = this.paramwares[param] || [];
 	for(const fn of middleware)
-		pws.push(fn);
+		pws.push((ctx, next) => fn(ctx.params[param], ctx, next));
 
 	this._update();
 }
@@ -934,6 +998,11 @@ Router.prototype._nest = function(path, router) {
  * `urlFor` is assigned to the current Koa context and should be used there
  * to ensure namespaces work correctly.
  *
+ * Once the URL has been built (using
+ * [path-to-regexp](https://github.com/pillarjs/path-to-regexp)) that generated
+ * URL and any left over parameters are merged into `options` and the structure
+ * is passed to [url.format()](https://nodejs.org/api/url.html#url_url_format_urlobject)
+ *
  * @example
  * const router = Router(),
  *       user_router = Router({name: 'user', prefix: '/user'});
@@ -995,7 +1064,7 @@ Router.compose = compose;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 20 2018 20:21:30 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 21 2018 01:46:43 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

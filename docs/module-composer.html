@@ -156,7 +156,7 @@
 
     
 
-    <h4 class="name" id="~compose"><span class="type-signature">(inner) </span>compose<span class="signature">(input)</span><span class="type-signature"> &rarr; {function}</span></h4>
+    <h4 class="name" id="~compose"><span class="type-signature">(inner) </span>compose<span class="signature">(&hellip;input)</span><span class="type-signature"> &rarr; {function}</span></h4>
 
     
 
@@ -168,7 +168,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="composer.js.html">composer.js</a>, <a href="composer.js.html#line9">line 9</a>
+        <a href="composer.js.html">composer.js</a>, <a href="composer.js.html#line32">line 32</a>
     </li></ul></dd>
     
 
@@ -214,16 +214,8 @@ module to avoid allocating excess objects and functions during runtime when
 at all possible. As a result, memory churn should be reduced while V8 should
 be able to properly optimize these methods.</p>
 <p>This can be used as a drop-in replacement for <a href="https://github.com/koajs/compose">koa-compose</a>.</p>
-<p>Objects can be supplied, describing middleware that should be filtered to only
-run on specific paths. These objects should be structured as:</p>
-<pre class="prettyprint source lang-javascript"><code>{
-    &quot;filtered&quot;: true,
-    &quot;rich&quot;: true,
-    &quot;test&quot;: /\/[a-z]{3}\//,
-    &quot;fn&quot;: MiddlewareFunction
-}</code></pre><p>If <code>rich</code> is true, <code>test</code> should be a compiled regular expression or some other
-object that has a <code>.test(url)</code> method. If <code>rich</code> is false, <code>test</code> should be
-a string to be compared via <code>url.startsWith(test)</code>.</p>
+<p><code>FilterableMiddleware</code> objects can be supplied, describing middleware
+that should be filtered to only run on specific paths.</p>
 </div>
 
 
@@ -254,6 +246,8 @@ a string to be compared via <code>url.startsWith(test)</code>.</p>
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -275,18 +269,28 @@ a string to be compared via <code>url.startsWith(test)</code>.</p>
 <span class="param-type">function</span>
 |
 
-<span class="param-type">Object</span>
-|
-
 <span class="param-type">Array.&lt;function()></span>
 |
 
-<span class="param-type">Array.&lt;Object></span>
+<span class="param-type">composer~FilterableMiddleware</span>
+|
+
+<span class="param-type">Array.&lt;FilterableMiddleware></span>
 
 
             
             </td>
 
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
             
 
             
@@ -342,6 +346,279 @@ be filtered to only run on specific paths.</p></td>
     
 
     
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+<h4 class="name" id="~FilterableMiddleware">FilterableMiddleware</h4>
+
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="composer.js.html">composer.js</a>, <a href="composer.js.html#line9">line 9</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Koa Middleware</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>filtered</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether or not this middleware should
+actually be filtered.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>rich</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>false</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>Whether the filter for this middleware is
+a function or a basic string for comparison.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>test</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+|
+
+<span class="param-type">RegExp</span>
+|
+
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Required when <code>filtered</code> is true.
+Either a string for a <code>path.startsWith(...)</code> comparison or an object with
+a <code>test</code> method that accepts the current path. Conveniently, compiled
+regular expressions have just such a method.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<div class="description">
+    <p>Filterable Middleware</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>{
+    fn: (ctx, next) => ctx.user ? next() : ctx.throw(401),
+    filtered: true,
+    rich: false,
+    test: "/user"
+}</code></pre>
+
+
+
+            
+    
 
     
 </article>
@@ -358,7 +635,7 @@ be filtered to only run on specific paths.</p></td>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 20 2018 20:21:30 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 21 2018 01:46:43 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

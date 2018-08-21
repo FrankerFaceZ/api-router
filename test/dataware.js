@@ -127,6 +127,22 @@ describe('dataware', function() {
 			res.type.should.eql('application/json');
 			res.body.success.should.eql(false);
 			should.not.exist(res.body.data);
+		});
+
+		it('works from nested routers', async function() {
+			const {router, req} = setup();
+			const r2 = new Router;
+
+			router.use(r2);
+			r2.useData('test', TEST_DATAWARE);
+
+			r2.get('/', {test: 42}, NO_SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(42);
 		})
 	});
 

@@ -1,6 +1,6 @@
 {
 	"name": "@ffz/api-router",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "A fast router middleware for Koa with support for nesting, associating data with routes, and dynamically assigning middleware based on that data.",
 	"license": "MIT",
 	"main": "lib/router.js",
@@ -25,6 +25,7 @@
 	"scripts": {
 		"eslint": "eslint --fix \"lib/**/*.js\"",
 		"test": "cross-env NODE_ENV=test nyc mocha --",
+		"test-bare": "cross-env NODE_ENV=test mocha",
 		"coverage": "nyc report --reporter=text-lcov | coveralls",
 		"docs": "rimraf docs && jsdoc -c jsdoc.json"
 	},
