@@ -371,6 +371,18 @@ describe('router basics', function() {
 				res.body.url.should.eql('/this/is/test');
 			});
 
+			it('errors with invalid routes', async function() {
+				const {router, app, req} = setup();
+				app.silent = true;
+
+				router.get('/', ctx => {
+					ctx.urlFor('test');
+				});
+
+				const res = await req().get('/').send();
+				res.status.should.eql(500);
+			});
+
 			it('builds nested urls', async function() {
 				const {router, req} = setup();
 				const r2 = Router({name: 'test'});
@@ -393,7 +405,7 @@ describe('router basics', function() {
 				router.get('/', ctx => {
 					ctx.body = {
 						url: ctx.urlFor('test.here'),
-						another: ctx.urlFor('test.foo.bar')
+						another: ctx.urlFor('.test.foo.bar')
 					}
 				});
 
@@ -409,7 +421,7 @@ describe('router basics', function() {
 				res.body.url.should.eql('/this/is/test');
 				res.body.absolute.should.eql('/this/is/test');
 				res.body.another.should.eql('/baz');
-			})
+			});
 
 			it('builds urls with queries', async function() {
 				const {router, req} = setup();

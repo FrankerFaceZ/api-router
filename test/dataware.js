@@ -143,6 +143,39 @@ describe('dataware', function() {
 			res.type.should.eql('application/json');
 			res.body.success.should.eql(true);
 			res.body.data.should.eql(42);
+		});
+
+		it('only applies once with nested routers', async function() {
+			const r1 = new Router;
+			const r2 = new Router;
+			const r3 = new Router;
+
+			r1.useData('test', () => (ctx, next) => {
+				ctx.data = (ctx.data || 0) + 1;
+				return next();
+			});
+
+			r3.get('/', {test: true}, ctx => {
+				ctx.body = {
+					success: true,
+					data: ctx.data
+				}
+			});
+
+			r2.use(r3);
+			r1.use(r2);
+
+			const app = new Koa,
+				server = createServer(app.callback()),
+				req = () => Chai.request(server);
+
+			app.use(r1.middleware());
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(1);
 		})
 	});
 
