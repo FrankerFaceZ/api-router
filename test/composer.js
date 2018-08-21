@@ -1,6 +1,6 @@
 const Chai = require('chai');
 const AsPromised = require('chai-as-promised');
-const compose = require('../lib/composor');
+const compose = require('../lib/composer');
 const should = Chai.should();
 
 Chai.use(AsPromised);
@@ -12,9 +12,9 @@ const COUNTER = (ctx, next) => {
 		return next();
 }
 
-const getContext = (url = '') => ({req: {url}, i: 0});
+const getContext = (path = '') => ({request: {path}, i: 0});
 
-describe('composor', function() {
+describe('composer', function() {
 	it('should compose middleware', function() {
 		const ret = compose(NOOP, NOOP);
 

@@ -22,9 +22,33 @@ const setup = options => {
 	}
 }
 
+const SUCCESS = ctx => {
+	ctx.body = {
+		success: true
+	}
+}
+
+const NO_SUCCESS = ctx => {
+	ctx.body = {
+		success: false
+	}
+}
+
 
 describe('middleware', function() {
 	describe('basics', function() {
+		it('does input validation', function() {
+			const {router} = setup();
+
+			should.throw(() => router.use());
+			should.throw(() => router.use(null, () => {}));
+			should.throw(() => router.use('/test', false));
+			should.throw(() => router.use(false));
+			should.throw(() => router.use([false], () => {}));
+			should.not.throw(() => router.use('/test', () => {}));
+			should.not.throw(() => router.use(['/test', '/here'], () => {}, () => {}));
+		})
+
 		it('composes multiple functions', async function() {
 			const {router, req} = setup();
 
@@ -74,11 +98,7 @@ describe('middleware', function() {
 		it('calls the external next at the top of the stack', async function() {
 			const {app, router, req} = setup();
 
-			app.use(ctx => {
-				ctx.body = {
-					success: true
-				}
-			})
+			app.use(SUCCESS);
 
 			router.get('/', (ctx, next) => next());
 
@@ -133,13 +153,9 @@ describe('middleware', function() {
 		it('only applies middleware to matching routes', async function() {
 			const {router, req} = setup();
 
-			router.use('/yes', ctx => {
-				ctx.body = {success: true}
-			});
+			router.use('/yes', SUCCESS);
 
-			router.get(['/yes', '/no'], ctx => {
-				ctx.body = {success: false}
-			});
+			router.get(['/yes', '/no'], NO_SUCCESS);
 
 			let res = await req().get('/no').send();
 			res.status.should.eql(200);
@@ -155,13 +171,9 @@ describe('middleware', function() {
 		it('applies middleware to routes with dynamic bits', async function() {
 			const {router, req} = setup();
 
-			router.use('/yes', ctx => {
-				ctx.body = {success: true}
-			});
+			router.use('/yes', SUCCESS);
 
-			router.get('/:maybe', ctx => {
-				ctx.body = {success: false}
-			});
+			router.get('/:maybe', NO_SUCCESS);
 
 			let res = await req().get('/no').send();
 			res.status.should.eql(200);
@@ -180,13 +192,8 @@ describe('middleware', function() {
 
 			router.use(r2);
 
-			r2.use(ctx => {
-				ctx.body = {success: true}
-			});
-
-			r2.get('/', ctx => {
-				ctx.body = {success: false}
-			});
+			r2.use(SUCCESS);
+			r2.get('/', NO_SUCCESS);
 
 			const res = await req().get('/test/').send();
 			res.status.should.eql(200);
@@ -196,6 +203,20 @@ describe('middleware', function() {
 	});
 
 	describe('mounting', function() {
+		it('does input validation', function() {
+			const {router} = setup();
+
+			should.throw(() => router.mount());
+			should.throw(() => router.mount('/test'));
+			should.throw(() => router.mount(null, SUCCESS));
+			should.throw(() => router.mount('/test', 3));
+			should.throw(() => router.mount(null, {}, SUCCESS));
+			should.throw(() => router.mount('/test', false, SUCCESS));
+			should.throw(() => router.mount('/test', {}, false));
+			should.not.throw(() => router.mount('/test', SUCCESS));
+			should.throw(() => router.mount('test', SUCCESS));
+		});
+
 		it('gets the right path', async function() {
 			const {router, req} = setup();
 
@@ -210,6 +231,40 @@ describe('middleware', function() {
 			res.type.should.eql('application/json');
 			res.body.path.should.eql('/here');
 		});
+
+		it('does nothing if mount middleware is disabled', async function() {
+			const {router, req} = setup({
+				mountMiddleware: false
+			});
+
+			router.mount('/test', ctx => {
+				ctx.body = {
+					path: ctx.path
+				}
+			});
+
+			const res = await req().get('/test/here').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.path.should.eql('/test/here');
+		});
+
+		it('accepts extra data', async function() {
+			const {router, req} = setup();
+
+			router.mount('/test', {some_data: true}, ctx => {
+				ctx.body = {
+					path: ctx.path,
+					success: ctx.state.route.some_data
+				}
+			});
+
+			const res = await req().get('/test/here').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.path.should.eql('/here');
+			res.body.success.should.eql(true);
+		})
 
 		it('restores the path after an error', async function() {
 			const {router, req} = setup();
@@ -236,6 +291,16 @@ describe('middleware', function() {
 	})
 
 	describe('params', function() {
+		it('does input validation', function() {
+			const {router} = setup();
+
+			should.throw(() => router.param());
+			should.throw(() => router.param('test', null));
+			should.throw(() => router.param(null, SUCCESS));
+			should.throw(() => router.param('test', 3));
+			should.not.throw(() => router.param('test', SUCCESS));
+		});
+
 		it('supports params', async function() {
 			const {router, req} = setup();
 

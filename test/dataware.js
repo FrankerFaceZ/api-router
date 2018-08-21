@@ -44,8 +44,11 @@ describe('dataware', function() {
 			should.throw(() => router.useData(null, TEST_DATAWARE));
 			should.throw(() => router.useData('test', false));
 			should.throw(() => router.useData('test', TEST_DATAWARE, null));
+			should.throw(() => router.useData('test', false, TEST_DATAWARE));
+			should.throw(() => router.useData('test', 1, null));
 			should.not.throw(() => router.useData('test', TEST_DATAWARE));
 			should.not.throw(() => router.useData('test', TEST_DATAWARE, () => {}));
+			should.not.throw(() => router.useData('test', 3, TEST_DATAWARE));
 		})
 
 		it('uses dataware', async function() {
@@ -78,6 +81,52 @@ describe('dataware', function() {
 			res.status.should.eql(200);
 			res.type.should.eql('application/json');
 			res.body.success.should.eql(true);
+		})
+	});
+
+	describe('nesting', function() {
+		it('does input checks', function() {
+			const {router} = setup();
+
+			should.throw(() => router.setDataExclusive());
+			should.throw(() => router.setDataExclusive(null, true));
+			should.throw(() => router.setDataExclusive('test', 3));
+			should.not.throw(() => router.setDataExclusive('test'));
+			should.not.throw(() => router.setDataExclusive('test', false));
+			should.not.throw(() => router.setDataExclusive('test', true));
+		})
+
+		it('inherits data-ware from parent routers', async function() {
+			const {router, req} = setup();
+			const r2 = new Router;
+
+			router.useData('test', TEST_DATAWARE);
+			router.use(r2);
+
+			r2.get('/', {test: 42}, NO_SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(42);
+		});
+
+		it('does not inherit excluded data-ware from parent routers', async function() {
+			const {router, req} = setup();
+			const r2 = new Router;
+
+			router.useData('test', TEST_DATAWARE);
+			router.use(r2);
+
+			r2.get('/', {test: 42}, NO_SUCCESS);
+			r2.setDataExclusive('test');
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(false);
+			should.not.exist(res.body.data);
 		})
 	});
 
@@ -116,12 +165,11 @@ describe('dataware', function() {
 		it('sorts dataware with overrides', async function() {
 			const {router, req} = setup();
 
-			router.useData('three', TEST_DATAWARE);
+			router.useData('three', 1, TEST_DATAWARE);
 			router.useData('two', TEST_DATAWARE);
 			router.useData('one', TEST_DATAWARE);
 
 			router.sortData('one', -1);
-			router.sortData('three', 1);
 
 			router.get('/12', {one: 1, two: 2}, NO_SUCCESS);
 			router.get('/23', {two: 2, three: 3}, NO_SUCCESS);

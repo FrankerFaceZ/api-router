@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>Home - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+
+
+
+
+
+
+
+    
+
+
+    <section class="readme">
+        <article><h1>@ffz/api-router</h1><p><a href="https://npmjs.org/package/@ffz/api-router"><img src="https://img.shields.io/npm/v/@ffz/api-router.svg?style=flat" alt="NPM Version"></a>
+<img src="https://img.shields.io/node/v/@ffz/api-router.svg?style=flat" alt="Node Version">
+<a href="https://circleci.com/gh/frankerfacez/api-router"><img src="https://img.shields.io/circleci/project/github/FrankerFaceZ/api-router.svg?style=flat" alt="Dependency Status"></a>
+<a href="https://david-dm.org/frankerfacez/api-router"><img src="https://img.shields.io/david/frankerfacez/api-router.svg?style=flat" alt="Build Status"></a>
+<a href="https://coveralls.io/github/FrankerFaceZ/api-router?branch=master"><img src="https://coveralls.io/repos/github/FrankerFaceZ/api-router/badge.svg?branch=master" alt="Test Coverage"></a></p>
+<p>Routing middleware for <a href="https://koajs.com/">Koa</a>.</p>
+<ul>
+<li>Express-style routing using <code>router.get()</code>, <code>router.post()</code>, etc.</li>
+<li>Named URL parameters</li>
+<li>Named routes with URL generation</li>
+<li>Responds to <code>OPTIONS</code> automatically.</li>
+<li>Generates <code>405 Method Not Allowed</code> responses automatically.</li>
+<li>Multiple routers</li>
+<li>Nestable routers</li>
+<li>Associate random data with a route</li>
+<li>Automatically add middleware to routes based on that data</li>
+<li>Pre-computes middleware chains for every route to minimize computation and allocations during runtime</li>
+<li>Uses <a href="https://github.com/delvedor/find-my-way">find-my-way</a> internally for route matching for fast routing</li>
+</ul>
+<hr>
+<h2>Install</h2><pre class="prettyprint source lang-bash"><code>$ npm install @ffz/api-router --save</code></pre><h2>Basic Usage</h2><pre class="prettyprint source lang-javascript"><code>import Koa from 'koa';
+import Router from '@ffz/api-router';
+
+const app = new Koa();
+const router = new Router();
+
+app.use(router.middleware());
+
+router.get('/', (ctx, next) => {
+    ctx.body = &quot;Hello, World!&quot;
+})
+
+app.listen(3000);</code></pre><h2>More Interesting Usage</h2><pre class="prettyprint source lang-javascript"><code>import Koa from 'koa';
+import Router from '@ffz/api-router';
+
+import redis from './redis_stuff';
+import generate_random_id from './some_other_place';
+
+const app = new Koa();
+const router = new Router();
+
+router.useData('cache', options => {
+    const duration = options.duration || 120;
+
+    return (ctx, next) => {
+        const key = ctx.url,
+            cached = await redis.hgetall(key);
+
+        if ( cached && cached.status ) {
+            ctx.status = parseInt(cached.status, 10);
+            ctx.etag = cached.etag;
+
+            if ( ctx.fresh ) {
+                ctx.status = 304;
+            } else {
+                ctx.type = cached.type;
+                ctx.body = cached.body;
+            }
+
+            return;
+        }
+
+        await next();
+
+        const etag = generate_random_id();
+        ctx.etag = etag;
+
+        const body = typeof ctx.body === 'string' ?
+            ctx.body :
+            JSON.stringify(ctx.body);
+
+        await redis.multi().hmset(key, {
+            status: ctx.status,
+            type: ctx.type,
+            etag,
+            body
+        }).expire(key, duration).exec();
+    }
+});
+
+router.get('/', {cache: {duration: 60}}, (ctx, next) => {
+    ctx.body = &quot;Hello, World!&quot;
+})
+
+app.use(router.middleware());
+app.listen(3000);</code></pre><p>The above code sets up a very simple caching middleware using Redis.
+The middleware is registered for <code>cache</code> data. Then, we register a
+new route and the route has <code>cache</code> data, so that middleware is
+automatically applied to it.</p>
+<h2>Tests</h2><p>Run tests using <code>npm test</code>.</p>
+<h2>Contributions and Support</h2><p>Please submit all issues and pull requests to the <a href="https://github.com/frankerfacez/api-router">FrankerFaceZ/api-router</a> repository.</p></article>
+    </section>
+
+
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 20 2018 20:02:52 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+
+
+</body>
+</html>

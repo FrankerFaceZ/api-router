@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>composer.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">composer.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+/**
+ * @fileOverview An efficient middleware composer for Koa.
+ * @module composer
+ */
+
+const reuse = require('reusify');
+
+/**
+ * Compose a method that will efficiently execute multiple middleware for
+ * Koa. This makes use of the [reusify](https://www.npmjs.com/package/reusify)
+ * module to avoid allocating excess objects and functions during runtime when
+ * at all possible. As a result, memory churn should be reduced while V8 should
+ * be able to properly optimize these methods.
+ *
+ * This can be used as a drop-in replacement for [koa-compose](https://github.com/koajs/compose).
+ *
+ * Objects can be supplied, describing middleware that should be filtered to only
+ * run on specific paths. These objects should be structured as:
+ * ```javascript
+ * {
+ *     "filtered": true,
+ *     "rich": true,
+ *     "test": /\/[a-z]{3}\//,
+ *     "fn": MiddlewareFunction
+ * }
+ * ```
+ *
+ * If `rich` is true, `test` should be a compiled regular expression or some other
+ * object that has a `.test(url)` method. If `rich` is false, `test` should be
+ * a string to be compared via `url.startsWith(test)`.
+ *
+ * @example
+ * app.use(compose(cors(), cache(), router.middleware()));
+ *
+ * @function
+ * @name compose
+ * @param {...Function|Object|Function[]|Object[]} input The various middleware
+ * to compose together. This can consist of functions or arrays of functions. The
+ * input may also be comprised of objects that describe middleware that should
+ * be filtered to only run on specific paths.
+ * @returns {Function} The composed middleware
+ */
+module.exports = function compose(...input) {
+	const middlewares = [];
+
+	for(const section of input) {
+		if ( ! section )
+			continue;
+
+		for(const fn of Array.isArray(section) ? section : [section]) {
+			if ( ! fn )
+				continue;
+
+			if ( typeof fn === 'function' )
+				middlewares.push({
+					filtered: false,
+					fn
+				});
+			else if ( fn.fn )
+				middlewares.push(fn);
+			else
+				throw new TypeError('invalid input to compose')
+		}
+	}
+
+	const len = middlewares.length;
+
+	function Composer() {
+		this.i = null;
+		this.context = null;
+		this.next = null;
+
+		const that = this,
+			bound = [];
+
+		this.run = function(i) {
+			if ( i &lt;= that.i )
+				return Promise.reject(new Error('next() called multiple times'));
+
+			const path = that.context.request.path;
+
+			let fn;
+			while(i &lt;= len) {
+				if ( i === len ) {
+					fn = that.next;
+					break;
+				}
+
+				const middleware = middlewares[i];
+				if ( ! middleware.filtered ||
+						(middleware.rich ?
+							middleware.test.test(path) :
+							path.startsWith(middleware.test)) ) {
+					fn = middleware.fn;
+					break;
+				}
+
+				i++;
+			}
+
+			this.i = i;
+
+			if ( ! fn )
+				return Promise.resolve();
+
+			try {
+				return Promise.resolve(fn(that.context, bound[i+1]));
+			} catch(err) {
+				return Promise.reject(err);
+			}
+		}
+
+		// We want to bind our run function once for every middleware,
+		// and once more after that to chain to the next() that the
+		// compose middleware was itself called with.
+		for(let i=0; i &lt;= len; i++)
+			bound.push(this.run.bind(this, i));
+	}
+
+	const pool = reuse(Composer);
+
+	const ret = async function composed(context, next) {
+		const inst = pool.get();
+
+		inst.i = -1;
+		inst.context = context;
+		inst.next = next;
+
+		try {
+			return await inst.run(0)
+		} finally {
+			inst.context = null;
+			inst.next = null;
+
+			pool.release(inst);
+		}
+	}
+
+	ret._middleware = middlewares;
+
+	return ret;
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 20 2018 20:02:52 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+
+
+</body>
+</html>

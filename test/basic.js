@@ -93,12 +93,22 @@ describe('router basics', function() {
 			should.throw(() => router.get([false], () => {}));
 			should.not.throw(() => router.get('/', () => {}));
 			should.not.throw(() => router.get(['/'], () => {}));
+
+			should.throw(() => router.register());
+			should.throw(() => router.register(null, '/', {}, () => {}));
+			should.throw(() => router.register('get', null, {}, () => {}));
+			should.throw(() => router.register('get', '/', false, () => {}));
+			should.throw(() => router.register([false], '/', {}, () => {}));
+			should.throw(() => router.register('get', [null], {}, () => {}));
+			should.throw(() => router.register('get', '/', {}, null));
+			should.not.throw(() => router.register('get', '/', null, () => {}));
 		});
 
 		it('errors with invalid options', function() {
 			const {router} = setup();
 
 			should.throw(() => router.get('/', false, () => {}));
+			should.throw(() => router.get('/', {}, 3));
 			should.not.throw(() => router.get('/', {}, () => {}));
 		})
 
@@ -360,6 +370,46 @@ describe('router basics', function() {
 				res.type.should.eql('application/json');
 				res.body.url.should.eql('/this/is/test');
 			});
+
+			it('builds nested urls', async function() {
+				const {router, req} = setup();
+				const r2 = Router({name: 'test'});
+				const r3 = Router({name: 'foo'});
+
+				router.use(r2);
+				r2.get('here', '/this/is/test', SUCCESS);
+
+				r2.use(r3);
+				r3.get('bar', '/baz', SUCCESS);
+
+				r2.get('/relative', ctx => {
+					ctx.body = {
+						url: ctx.urlFor('.here'),
+						another: ctx.urlFor('.foo.bar'),
+						absolute: ctx.urlFor('test.here')
+					}
+				});
+
+				router.get('/', ctx => {
+					ctx.body = {
+						url: ctx.urlFor('test.here'),
+						another: ctx.urlFor('test.foo.bar')
+					}
+				});
+
+				let res = await req().get('/').send();
+				res.status.should.eql(200);
+				res.type.should.eql('application/json');
+				res.body.url.should.eql('/this/is/test');
+				res.body.another.should.eql('/baz');
+
+				res = await req().get('/relative').send();
+				res.status.should.eql(200);
+				res.type.should.eql('application/json');
+				res.body.url.should.eql('/this/is/test');
+				res.body.absolute.should.eql('/this/is/test');
+				res.body.another.should.eql('/baz');
+			})
 
 			it('builds urls with queries', async function() {
 				const {router, req} = setup();

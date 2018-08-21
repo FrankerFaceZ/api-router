@@ -12,7 +12,7 @@
 		"**/.nyc_output": true,
 		"**/coverage": true,
 		"**/node_modules": true,
-		"**/dist": true,
+		"**/docs": true
 	},
 
 	"eslint.autoFixOnSave": true,

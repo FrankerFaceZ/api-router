@@ -1,4 +1,47 @@
-'use strict';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>router.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">router.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
 
 const debug = require('debug')('ffz-api-router');
 const FindMyWay = require('find-my-way');
@@ -130,7 +173,7 @@ Router.prototype.middleware = function() {
 
 		const method = ctx.method.toLowerCase(),
 			rt = router._router,
-			match = rt && rt.find('GET', ctx.path);
+			match = rt &amp;&amp; rt.find('GET', ctx.path);
 
 		if ( ! match ) {
 			if ( has_timers )
@@ -139,11 +182,11 @@ Router.prototype.middleware = function() {
 		}
 
 		const {params, store} = match;
-		const data = store[method] || (method !== 'options' && store.all);
+		const data = store[method] || (method !== 'options' &amp;&amp; store.all);
 
 		ctx.request.params = ctx.params = params;
 		ctx.state._route = data;
-		ctx.state.route = data && data.options;
+		ctx.state.route = data &amp;&amp; data.options;
 
 		const urls = pool.get();
 		urls.context = ctx;
@@ -156,7 +199,7 @@ Router.prototype.middleware = function() {
 		}
 
 		let fn;
-		if ( method === 'options' && router.opts.handleOptions ) {
+		if ( method === 'options' &amp;&amp; router.opts.handleOptions ) {
 			if ( typeof router.opts.handleOptions === 'function' )
 				fn = router.opts.handleOptions;
 			else
@@ -290,7 +333,7 @@ Router.prototype._update = function() {
 		}
 
 		for(const [key, d] of Object.entries(data)) {
-			if ( d.options && d.options.name ) {
+			if ( d.options &amp;&amp; d.options.name ) {
 				const name = d.name_prefix ?
 					`${d.name_prefix}.${d.options.name}` :
 					d.options.name;
@@ -300,7 +343,7 @@ Router.prototype._update = function() {
 
 			const matching_dware = [];
 			for(const [dkey, dware] of dataware) {
-				if ( d.options[dkey] && ! d.exclusive.includes(dkey) )
+				if ( d.options[dkey] &amp;&amp; ! d.exclusive.includes(dkey) )
 					for(const dw of dware)
 						matching_dware.push(dw(d.options[dkey], route, d));
 			}
@@ -343,8 +386,8 @@ Router.prototype._matchMiddleware = function(path, middlewares) {
 
 	for(const [middle_tokens, r, data] of middlewares) {
 		if ( match_fn(tokens, middle_tokens) ) {
-			const filtered = r && r.length > 0,
-				rich = filtered && r.includes(':'),
+			const filtered = r &amp;&amp; r.length > 0,
+				rich = filtered &amp;&amp; r.includes(':'),
 				compiled = rich ? pathToRegexp(r) : r;
 
 			for(const middleware of data)
@@ -372,15 +415,15 @@ function couldMatch(tokens, middle_tokens) {
 
 	const i=0, j=0;
 
-	//while(i < len || j < mid_len) {
+	//while(i &lt; len || j &lt; mid_len) {
 	const token = tokens[i],
 		mid_token = middle_tokens[j];
 
 	if ( ! token )
 		return false;
 
-	if ( typeof token === 'string' && typeof mid_token === 'string' ) {
-		if ( token !== mid_token && ! token.startsWith(`${mid_token}/`) )
+	if ( typeof token === 'string' &amp;&amp; typeof mid_token === 'string' ) {
+		if ( token !== mid_token &amp;&amp; ! token.startsWith(`${mid_token}/`) )
 			return false;
 	}
 
@@ -509,7 +552,7 @@ METHODS.concat('all').forEach(method => {
 		// can be a string or an array of strings.
 
 		// It's more efficient to check the type of the second parameter directly.
-		if ( typeof path !== 'string' && ! Array.isArray(path) ) {
+		if ( typeof path !== 'string' &amp;&amp; ! Array.isArray(path) ) {
 			if ( options != null )
 				middleware.unshift(options);
 
@@ -619,13 +662,13 @@ Router.prototype.use = function(path, ...middleware) {
 			throw new TypeError('path must be a string or array of strings');
 
 	for(const fn of middleware)
-		if ( !(fn instanceof Router) && typeof fn !== 'function' )
+		if ( !(fn instanceof Router) &amp;&amp; typeof fn !== 'function' )
 			throw new TypeError('middleware must be a function or Router instance');
 
 	const mids = [];
 
 	for(let fn of middleware) {
-		if ( typeof fn === 'function' && fn.router instanceof Router )
+		if ( typeof fn === 'function' &amp;&amp; fn.router instanceof Router )
 			fn = fn.router;
 
 		if ( fn instanceof Router ) {
@@ -938,3 +981,26 @@ Router.prototype.urlFor = function(name, params = {}, options = {}) {
 
 Router.Mount = Mount;
 Router.compose = compose;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Aug 20 2018 20:02:52 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+
+
+</body>
+</html>

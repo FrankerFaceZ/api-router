@@ -1,5 +1,4 @@
-@ffz/api-router
-===============
+# @ffz/api-router
 
 [![NPM Version](https://img.shields.io/npm/v/@ffz/api-router.svg?style=flat)](https://npmjs.org/package/@ffz/api-router)
 ![Node Version](https://img.shields.io/node/v/@ffz/api-router.svg?style=flat)
@@ -7,24 +6,21 @@
 [![Build Status](https://img.shields.io/david/frankerfacez/api-router.svg?style=flat)](https://david-dm.org/frankerfacez/api-router)
 [![Test Coverage](https://coveralls.io/repos/github/FrankerFaceZ/api-router/badge.svg?branch=master)](https://coveralls.io/github/FrankerFaceZ/api-router?branch=master)
 
-
 Routing middleware for [Koa](https://koajs.com/).
 
-* Express-style routing using `router.get()`, `router.post()`, etc.
-* Named URL parameters
-* Named routes with URL generation
-* Responds to `OPTIONS` automatically.
-* Generates `405 Method Not Allowed` responses automatically.
-* Multiple routers
-* Nestable routers
+-   Express-style routing using `router.get()`, `router.post()`, etc.
+-   Named URL parameters
+-   Named routes with URL generation
+-   Responds to `OPTIONS` automatically.
+-   Generates `405 Method Not Allowed` responses automatically.
+-   Multiple routers
+-   Nestable routers
+-   Associate random data with a route
+-   Automatically add middleware to routes based on that data
+-   Pre-computes middleware chains for every route to minimize computation and allocations during runtime
+-   Uses [find-my-way](https://github.com/delvedor/find-my-way) internally for route matching for fast routing
 
-* Associate random data with a route
-* Automatically add middleware to routes based on that data
-
-* Pre-computes middleware chains for every route to minimize computation and allocations during runtime
-* Uses [find-my-way](https://github.com/delvedor/find-my-way) internally for route matching for fast routing
-
----
+* * *
 
 ## Install
 
@@ -113,7 +109,6 @@ The above code sets up a very simple caching middleware using Redis.
 The middleware is registered for `cache` data. Then, we register a
 new route and the route has `cache` data, so that middleware is
 automatically applied to it.
-
 
 ## Tests
 
