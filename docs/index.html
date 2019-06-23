@@ -13,6 +13,7 @@
     <![endif]-->
     <link type="text/css" rel="stylesheet" href="styles/prettify.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
@@ -24,7 +25,7 @@
 
 <label for="nav-trigger" class="overlay"></label>
 
-<nav>
+<nav >
     
     <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
 </nav>
@@ -39,6 +40,11 @@
     
 
 
+    <section class="package">
+        <h3> </h3>		
+    </section>
+
+
 
 
 
@@ -49,8 +55,10 @@
     
 
 
+
     <section class="readme">
-        <article><h1>@ffz/api-router</h1><p><a href="https://npmjs.org/package/@ffz/api-router"><img src="https://img.shields.io/npm/v/@ffz/api-router.svg?style=flat" alt="NPM Version"></a>
+        <article><h1>@ffz/api-router</h1>
+<p><a href="https://npmjs.org/package/@ffz/api-router"><img src="https://img.shields.io/npm/v/@ffz/api-router.svg?style=flat" alt="NPM Version"></a>
 <img src="https://img.shields.io/node/v/@ffz/api-router.svg?style=flat" alt="Node Version">
 <a href="https://circleci.com/gh/frankerfacez/api-router"><img src="https://img.shields.io/circleci/project/github/FrankerFaceZ/api-router.svg?style=flat" alt="Dependency Status"></a>
 <a href="https://david-dm.org/frankerfacez/api-router"><img src="https://img.shields.io/david/frankerfacez/api-router.svg?style=flat" alt="Build Status"></a>
@@ -70,10 +78,15 @@
 <li>Uses <a href="https://github.com/delvedor/find-my-way">find-my-way</a> internally for route matching for fast routing</li>
 </ul>
 <hr>
-<h2>Install</h2><pre class="prettyprint source lang-bash"><code>$ npm install @ffz/api-router --save</code></pre><h2>Documentation</h2><ul>
+<h2>Install</h2>
+<pre class="prettyprint source lang-bash"><code>$ npm install @ffz/api-router --save
+</code></pre>
+<h2>Documentation</h2>
+<ul>
 <li><a href="https://frankerfacez.github.io/api-router/">API Documentation</a></li>
 </ul>
-<h2>Basic Usage</h2><pre class="prettyprint source lang-javascript"><code>import Koa from 'koa';
+<h2>Basic Usage</h2>
+<pre class="prettyprint source lang-javascript"><code>import Koa from 'koa';
 import Router from '@ffz/api-router';
 
 const app = new Koa();
@@ -85,7 +98,10 @@ router.get('/', (ctx, next) => {
     ctx.body = &quot;Hello, World!&quot;
 })
 
-app.listen(3000);</code></pre><h2>More Interesting Usage</h2><pre class="prettyprint source lang-javascript"><code>import Koa from 'koa';
+app.listen(3000);
+</code></pre>
+<h2>More Interesting Usage</h2>
+<pre class="prettyprint source lang-javascript"><code>import Koa from 'koa';
 import Router from '@ffz/api-router';
 
 import redis from './redis_stuff';
@@ -138,12 +154,16 @@ router.get('/', {cache: {duration: 60}}, (ctx, next) => {
 })
 
 app.use(router.middleware());
-app.listen(3000);</code></pre><p>The above code sets up a very simple caching middleware using Redis.
+app.listen(3000);
+</code></pre>
+<p>The above code sets up a very simple caching middleware using Redis.
 The middleware is registered for <code>cache</code> data. Then, we register a
 new route and the route has <code>cache</code> data, so that middleware is
 automatically applied to it.</p>
-<h2>Tests</h2><p>Run tests using <code>npm test</code>.</p>
-<h2>Contributions and Support</h2><p>Please submit all issues and pull requests to the <a href="https://github.com/frankerfacez/api-router">FrankerFaceZ/api-router</a> repository.</p></article>
+<h2>Tests</h2>
+<p>Run tests using <code>npm test</code>.</p>
+<h2>Contributions and Support</h2>
+<p>Please submit all issues and pull requests to the <a href="https://github.com/frankerfacez/api-router">FrankerFaceZ/api-router</a> repository.</p></article>
     </section>
 
 
@@ -158,11 +178,13 @@ automatically applied to it.</p>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 21 2018 01:46:43 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.2</a> on Sun Jun 23 2019 18:30:04 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
 <script src="scripts/linenumber.js"></script>
+
 
 
 </body>

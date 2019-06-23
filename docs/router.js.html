@@ -13,6 +13,7 @@
     <![endif]-->
     <link type="text/css" rel="stylesheet" href="styles/prettify.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
@@ -24,7 +25,7 @@
 
 <label for="nav-trigger" class="overlay"></label>
 
-<nav>
+<nav >
     
     <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
 </nav>
@@ -137,6 +138,8 @@ function Router(opts) {
 
 /**
  * A factory for Koa middleware, acting off of data attached to a specific route.
+ * The returned function or functions may have a `sort` property for overriding the
+ * sorting of that specific middleware instance on that specific route.
  *
  * @example
  * router.useData('database', options => {
@@ -154,12 +157,34 @@ function Router(opts) {
  *     }
  * });
  *
+ * router.useData('validation', options => {
+ *     const methods = [];
+ *
+ *     if ( options.query )
+ *         methods.push((ctx, next) => {
+ *             validateQuery(options.query, ctx.query);
+ *             return next();
+ *         });
+ *
+ *     if ( options.result ) {
+ *         const fn = async (ctx, next) => {
+ *             await next();
+ *             validateResult(options.result, ctx);
+ *         };
+ *
+ *         fn.sort = 2;
+ *         methods.push(fn);
+ *     }
+ *
+ *     return methods;
+ * });
+ *
  * @callback Router~dataMiddleware
  * @param {*} data The data attached to a route that triggered the instantiation of this
  * data-ware middleware.
  * @param {String} route The applicable route
  * @param {Object} _store The internal data store for the route.
- * @returns {Function} Koa Middleware
+ * @returns {Function|Function[]} Koa Middleware
  */
 
 // Middleware
@@ -352,14 +377,7 @@ Router.prototype._update = function() {
 		[pathToRegexp.parse(route), route, data]
 	);
 
-
-	// Sort our dataware.
-	const dataware = Object.entries(this.datawares).sort((a,b) => {
-		a = this.dataware_sort[a[0]] || 0;
-		b = this.dataware_sort[b[0]] || 0;
-
-		return a - b;
-	});
+	const dataware = Object.entries(this.datawares);
 
 	// Now, we want to build our final routing data. This data is kept
 	// on our find-my-way router instance. We're also going to apply
@@ -398,15 +416,48 @@ Router.prototype._update = function() {
 			for(const [dkey, dware] of dataware) {
 				if ( d.options[dkey] &amp;&amp; ! d.exclusive.includes(dkey) )
 					for(const dw of dware)
-						matching_dware.push([dkey, dw]);
+						matching_dware.push([dkey, dw, this.dataware_sort[dkey]]);
 			}
 
 			for(const dkey of this.dataware_exclusive)
 				d.exclusive.push(dkey)
 
 			if ( live ) {
-				const dware = matching_dware.map(([dkey, dw]) =>
-					dw(d.options[dkey], route, d))
+				// Construct our list of dataware methods.
+				// Dataware constructors are allowed to return more
+				// than one function to be composed, and they
+				// can have custom sorting.
+				const dware = [];
+				for(const [dkey, dw, sort] of matching_dware) {
+					const out = dw(d.options[dkey], route, d);
+					if ( ! out )
+						continue;
+
+					if ( Array.isArray(out) ) {
+						for(const thing of out) {
+							if ( ! thing )
+								continue;
+
+							if ( ! thing.sort )
+								thing.sort = sort;
+
+							dware.push(thing);
+						}
+
+					} else {
+						if ( ! out.sort )
+							out.sort = sort;
+
+						dware.push(out);
+					}
+				}
+
+				dware.sort((a, b) => {
+					a = a &amp;&amp; a.sort || 0;
+					b = b &amp;&amp; b.sort || 0;
+
+					return a - b;
+				});
 
 				new_data[key] = Object.assign({}, d, {
 					fn: this.opts.paramwareBeforeDataware ?
@@ -509,7 +560,13 @@ function mergeRoutes(output, name, prefix, routes) {
 
 			for(const [method, rdata] of Object.entries(data[1])) {
 				if ( method.startsWith('_') ) {
-					out[method] = rdata;
+					if ( Array.isArray(rdata) )
+						out[method] = Array.from(rdata);
+					else if ( typeof rdata === 'object' )
+						out[method] = Object.assign({}, rdata);
+					else
+						out[method] = rdata;
+
 					continue;
 				}
 
@@ -522,6 +579,7 @@ function mergeRoutes(output, name, prefix, routes) {
 					rdata,
 					{
 						name_prefix,
+						dataware: rdata.dataware ? Array.from(rdata.dataware) : [],
 						exclusive: rdata.exclusive ? Array.from(rdata.exclusive) : []
 					}
 				);
@@ -749,9 +807,14 @@ Router.prototype.use = function(path, ...middleware) {
 }
 
 /**
- * Use the given middleware on routes with the provided data key. Middleware
- * registered using this are run after general middleware registered
+ * Use constructed middleware on routes with the provided data key. Constructors
+ * registered using this method are executed when pre-calculating a route's middleware
+ * chain. The constructors are expected to return a middleware function or array of
+ * functions. These functions will be run after general middleware registered
  * via {@link Router#use} but before the middleware functions registered for a route.
+ *
+ * By setting a `sort` property on the returned middleware method, it is possible
+ * to override the sorting for that specific method.
  *
  * @example
  * router.useData('headers', headers => {
@@ -761,10 +824,29 @@ Router.prototype.use = function(path, ...middleware) {
  *     }
  * });
  *
+ * router.useData('validation', -1, options => {
+ *     const postFn = (ctx, next) => {
+ *         // This runs after headers
+ *         await next();
+ *     };
+ *
+ *     // Make postFn run later
+ *     postFn.sort = 2;
+ *
+ *     return [
+ *         async (ctx, next) => {
+ *             // This runs before headers
+ *             await next();
+ *         },
+ *         postFn
+ *     ];
+ * });
+ *
  * router.get('/', {
  *     headers: {
  *         'Access-Control-Allow-Origin': '*'
- *     }
+ *     },
+ *     validation: true
  * }, ctx => {
  *     ctx.body = "Hello, World!";
  * });
@@ -772,27 +854,27 @@ Router.prototype.use = function(path, ...middleware) {
  * @param {String} key The data key to match
  * @param {Number} [sort_value=0] A number to use for this data-based middleware when
  * sorting to determine which to apply first. Lower values execute first.
- * @param {...Function} middleware The middleware function(s) to use
+ * @param {...Function} constructor The middleware constructor function(s) to use
  * @returns {Router} The Router
  */
-Router.prototype.useData = function(key, sort_value, ...middleware) {
+Router.prototype.useData = function(key, sort_value, ...constructor) {
 	if ( typeof key !== 'string' )
 		throw new TypeError('key must be a string');
 
 	if ( typeof sort_value === 'function' ) {
-		middleware.unshift(sort_value);
+		constructor.unshift(sort_value);
 		sort_value = 0;
 	} else if ( typeof sort_value === 'number' )
 		this.dataware_sort[key] = sort_value;
 	else
 		throw new TypeError('sort_value must be a number');
 
-	for(const fn of middleware)
+	for(const fn of constructor)
 		if ( typeof fn !== 'function' )
 			throw new TypeError('middleware must be a function');
 
 	const dws = this.datawares[key] = this.datawares[key] || [];
-	for(const fn of middleware)
+	for(const fn of constructor)
 		dws.push(fn);
 
 	this._update();
@@ -802,7 +884,7 @@ Router.prototype.useData = function(key, sort_value, ...middleware) {
 /**
  * This allows you to override the order in which data-based middleware are
  * applied. You can also provide this value when defining your data-based
- * middleware with {@link Router#useData}.
+ * middleware constructors with {@link Router#useData}.
  *
  * @param {String} key The data key
  * @param {Number} [sort_value=0] A number to use for this data-based
@@ -1021,8 +1103,6 @@ Router.prototype._nest = function(path, router) {
  *     ctx.redirect(ctx.urlFor('user.me'));
  * });
  *
- * user
- *
  * @param {String} name The name of the route
  * @param {Object} [params] Parameters to place in the generated URL.
  * Required if the route takes parameters. Any parameter not consumed in the route
@@ -1064,11 +1144,13 @@ Router.compose = compose;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 21 2018 01:46:43 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.2</a> on Sun Jun 23 2019 18:30:04 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
 <script src="scripts/linenumber.js"></script>
+
 
 
 </body>
