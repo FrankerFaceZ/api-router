@@ -235,5 +235,47 @@ describe('dataware', function() {
 			res.body.success.should.eql(true);
 			res.body.data.should.eql(2);
 		})
+
+		it('allows dataware to override sorting', async function() {
+			const {router, req} = setup();
+
+			router.useData('one', TEST_DATAWARE);
+			router.useData('two', data => {
+				const fn = ctx => {
+					ctx.body = {
+						success: true,
+						data
+					}
+				}
+
+				fn.sort = -1;
+				return fn;
+			});
+
+			router.get('/12', {one: 1, two: 2}, NO_SUCCESS);
+
+			const res = await req().get('/12').send();
+			res.status.should.eql(200)
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(2);
+		})
+
+		it('allows dataware to return multiple functions', async function() {
+			const {router, req} = setup();
+
+			router.useData('one', data => [
+				(ctx, next) => next(),
+				TEST_DATAWARE(data)
+			]);
+
+			router.get('/12', {one: 1}, NO_SUCCESS);
+
+			const res = await req().get('/12').send();
+			res.status.should.eql(200)
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(1);
+		})
 	})
 })
