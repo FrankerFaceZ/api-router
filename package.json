@@ -1,6 +1,6 @@
 {
 	"name": "@ffz/api-router",
-	"version": "1.2.0",
+	"version": "1.3.0",
 	"description": "A fast router middleware for Koa with support for nesting, associating data with routes, and dynamically assigning middleware based on that data.",
 	"license": "MIT",
 	"main": "lib/router.js",
