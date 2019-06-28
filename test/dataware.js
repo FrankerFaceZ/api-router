@@ -28,6 +28,12 @@ const NO_SUCCESS = ctx => {
 	}
 }
 
+const SUCCESS = ctx => {
+	ctx.body = {
+		success: true
+	}
+};
+
 const TEST_DATAWARE = data => ctx => {
 	ctx.body = {
 		success: true,
@@ -81,8 +87,78 @@ describe('dataware', function() {
 			res.status.should.eql(200);
 			res.type.should.eql('application/json');
 			res.body.success.should.eql(true);
+		});
+
+		it('runs with false-ish data', async function() {
+			const {router, req} = setup();
+
+			router.useData('test', TEST_DATAWARE);
+
+			router.get('/', {test: false}, NO_SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
 		})
 	});
+
+	describe('weird output', function() {
+		it('allows dataware methods to return nothing', async function() {
+			const {router, req} = setup();
+
+			router.useData('test', () => null);
+
+			router.get('/', {test: false}, SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+		});
+
+		it('allows dataware methods to return an empty list', async function() {
+			const {router, req} = setup();
+
+			router.useData('test', () => []);
+
+			router.get('/', {test: false}, SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+		});
+
+		it('composes multiple return values from one dataware', async function() {
+			const {router, req} = setup();
+
+			router.useData('test', () => [
+				(ctx, next) => {
+					ctx.body = {
+						one: true
+					};
+					return next();
+				},
+				null,
+				(ctx, next) => {
+					ctx.body.two = true;
+					return next();
+				}
+			]);
+
+			router.get('/', {test: false}, ctx => {
+				ctx.body.three = true;
+			});
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.one.should.eql(true);
+			res.body.two.should.eql(true);
+			res.body.three.should.eql(true);
+		})
+	})
 
 	describe('nesting', function() {
 		it('does input checks', function() {
