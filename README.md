@@ -11,6 +11,7 @@ Routing middleware for [Koa](https://koajs.com/).
 -   Express-style routing using `router.get()`, `router.post()`, etc.
 -   Named URL parameters
 -   Named routes with URL generation
+-   Support for multiple hosts (with parameters)
 -   Responds to `OPTIONS` automatically.
 -   Generates `405 Method Not Allowed` responses automatically.
 -   Multiple routers

@@ -86,6 +86,52 @@ describe('router basics', function() {
 			res.body.success.should.eql(true);
 		});
 
+		it('handles domains', async function() {
+			const {router, req} = setup();
+
+			router.get('/yes', {
+				host: 'tEst'
+			}, SUCCESS);
+
+			router.get('/no', {
+				host: 'nope'
+			}, NO_SUCCESS);
+
+			let res = await req().get('/yes').set('Host', 'test').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+
+			res = await req().get('/no').set('Host', 'Nope').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(false);
+
+			res = await req().get('/yes').set('Host', 'nope').send();
+			res.status.should.eql(404);
+		});
+
+		it('overrides domains with nesting', async function() {
+			const {router, req} = setup({
+				host: 'test'
+			});
+
+			const r2 = new Router({
+				host: 'another'
+			});
+
+			r2.get('/', SUCCESS);
+			router.use(r2);
+
+			let res = await req().get('/').set('Host', 'test').send();
+			res.status.should.eql(404);
+
+			res = await req().get('/').set('Host', 'another').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+		});
+
 		it('errors with invalid paths', function() {
 			const {router} = setup();
 
@@ -212,6 +258,23 @@ describe('router basics', function() {
 			});
 
 			const res = await req().get('/world').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.hello.should.eql('world');
+		});
+
+		it('supports host parameters', async function() {
+			const {router, req} = setup({
+				host: ':name.example'
+			});
+
+			router.get('/', ctx => {
+				ctx.body = {
+					hello: ctx.host_params.name
+				}
+			});
+
+			const res = await req().get('/').set('Host', 'world.example').send();
 			res.status.should.eql(200);
 			res.type.should.eql('application/json');
 			res.body.hello.should.eql('world');
@@ -369,6 +432,97 @@ describe('router basics', function() {
 				res.status.should.eql(200);
 				res.type.should.eql('application/json');
 				res.body.url.should.eql('/this/is/test');
+			});
+
+			it('builds urls with hosts', async function() {
+				const {router, req} = setup({
+					host: 'test'
+				});
+
+				const r2 = new Router({
+					host: 'extra'
+				});
+
+				router.get('test', '/this/is/test', SUCCESS);
+				router.get('another', '/yet/another', {
+					host: 'another'
+				}, SUCCESS);
+
+				router.get('/', ctx => {
+					ctx.body = {
+						url: ctx.urlFor('test'),
+						abs: ctx.urlFor('test', null, {absolute: true}),
+						another: ctx.urlFor('another')
+					}
+				});
+
+				r2.get('/extra', ctx => {
+					ctx.body = {
+						url: ctx.urlFor('test'),
+						another: ctx.urlFor('another', null, {slashes: false, absolute: true})
+					}
+				});
+
+				router.use(r2);
+
+				let res = await req().get('/').set('Host', 'test').send();
+				res.status.should.eql(200);
+				res.type.should.eql('application/json');
+				res.body.url.should.eql('/this/is/test');
+				res.body.abs.should.eql('http://test/this/is/test');
+				res.body.another.should.eql('http://another/yet/another');
+
+				res = await req().get('/extra').set('Host', 'extra').send();
+				res.status.should.eql(200);
+				res.type.should.eql('application/json');
+				res.body.url.should.eql('http://test/this/is/test');
+				res.body.another.should.eql('another/yet/another');
+			});
+
+			it('builds urls with host variables', async function() {
+				const {router, req} = setup({
+					host: 'test'
+				});
+
+				const r2 = new Router({
+					host: ':name.example'
+				});
+
+				router.get('/', ctx => {
+					ctx.body = {
+						url: ctx.urlFor('thing', {name: 'world'})
+					}
+				});
+
+				r2.get('thing', '/extra', SUCCESS);
+				router.use(r2);
+
+				const res = await req().get('/').set('Host', 'test').send();
+				res.status.should.eql(200);
+				res.type.should.eql('application/json');
+				res.body.url.should.eql('http://world.example/extra');
+			});
+
+			it('requires url host variables', async function() {
+				const {router, req} = setup({
+					host: 'test'
+				});
+
+				const r2 = new Router({
+					host: ':name.example'
+				});
+
+				router.get('/', ctx => {
+					ctx.body = {
+						url: ctx.urlFor('thing')
+					}
+				});
+
+				r2.get('thing', '/extra', SUCCESS);
+				router.use(r2);
+
+				const res = await req().get('/').set('Host', 'test').send();
+				res.status.should.eql(500);
 			});
 
 			it('errors with invalid routes', async function() {
