@@ -100,7 +100,7 @@ describe('dataware', function() {
 			res.status.should.eql(200);
 			res.type.should.eql('application/json');
 			res.body.success.should.eql(true);
-		})
+		});
 	});
 
 	describe('weird output', function() {
@@ -158,7 +158,78 @@ describe('dataware', function() {
 			res.body.two.should.eql(true);
 			res.body.three.should.eql(true);
 		})
-	})
+	});
+
+	describe('defaults', function() {
+		it('runs with default data', async function() {
+			const {router, req} = setup();
+
+			router.useData('test', TEST_DATAWARE);
+			router.defaultData('test', 42);
+
+			router.get('/', NO_SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(42);
+		});
+
+		it('inherits default data', async function () {
+			const {router, req} = setup();
+			const r2 = new Router;
+
+			router.useData('test', TEST_DATAWARE);
+			router.defaultData('test', 42);
+
+			router.use(r2);
+
+			r2.get('/', NO_SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(42);
+		});
+
+		it('uses child default data', async function() {
+			const {router, req} = setup();
+			const r2 = new Router;
+
+			router.useData('test', TEST_DATAWARE);
+			router.defaultData('test', 40);
+			router.use(r2);
+
+			r2.defaultData('test', 42);
+			r2.get('/', NO_SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(42);
+		});
+
+		it('runs entirely in child', async function() {
+			const {router, req} = setup();
+			const r2 = new Router;
+
+			r2.useData('test', TEST_DATAWARE);
+			r2.defaultData('test', 42);
+
+			router.use(r2);
+
+			r2.get('/', NO_SUCCESS);
+
+			const res = await req().get('/').send();
+			res.status.should.eql(200);
+			res.type.should.eql('application/json');
+			res.body.success.should.eql(true);
+			res.body.data.should.eql(42);
+		});
+	});
 
 	describe('nesting', function() {
 		it('does input checks', function() {
