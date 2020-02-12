@@ -27,7 +27,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#defaultData">defaultData</a></li><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
 </nav>
 
 <div id="main">
@@ -104,6 +104,7 @@ function Router(opts) {
 	this.datawares = {};
 
 	this.dataware_sort = {};
+	this.dataware_default = {};
 	this.dataware_exclusive = new Set;
 
 	if ( this.opts.mountMiddleware ) {
@@ -471,15 +472,21 @@ Router.prototype._update = function() {
 					named[name] = [route_params, route_fn, host_info.rich, route_host, host_info.vars, host_info.reverse];
 				}
 
+				const matching_defaults = d.defaults = d.defaults || {};
+				for(const [dkey, value] of Object.entries(this.dataware_default)) {
+					if ( ! has(matching_defaults, dkey) )
+						matching_defaults[dkey] = value;
+				}
+
 				const matching_dware = d.dataware = d.dataware || [];
 				for(const [dkey, dware] of dataware) {
-					if ( has(d.options, dkey) &amp;&amp; ! d.exclusive.includes(dkey) )
+					if ( ! d.exclusive.includes(dkey) &amp;&amp; (has(d.options, dkey) || has(matching_defaults, dkey)) )
 						for(const dw of dware)
 							matching_dware.push([dkey, dw, this.dataware_sort[dkey]]);
 				}
 
 				for(const dkey of this.dataware_exclusive)
-					d.exclusive.push(dkey)
+					d.exclusive.push(dkey);
 
 				if ( live ) {
 					// Construct our list of dataware methods.
@@ -488,7 +495,8 @@ Router.prototype._update = function() {
 					// can have custom sorting.
 					const dware = [];
 					for(const [dkey, dw, sort] of matching_dware) {
-						const out = dw(d.options[dkey], route, d);
+						const data = has(d.options, dkey) ? d.options[dkey] : matching_defaults[dkey],
+							out = dw(data, route, d);
 						if ( ! out )
 							continue;
 
@@ -691,7 +699,8 @@ function mergeRoutes(output, host, name, prefix, routes) {
 						{
 							name_prefix,
 							dataware: rdata.dataware ? Array.from(rdata.dataware) : [],
-							exclusive: rdata.exclusive ? Array.from(rdata.exclusive) : []
+							exclusive: rdata.exclusive ? Array.from(rdata.exclusive) : [],
+							defaults: rdata.defaults ? Object.assign({}, rdata.defaults) : {}
 						}
 					);
 				}
@@ -1002,6 +1011,47 @@ Router.prototype.useData = function(key, sort_value, ...constructor) {
 }
 
 /**
+ * This allows you to set default data which is used for all routes that do not
+ * have existing data set for a specific data-based middleware.
+ *
+ * @example
+ * // For an example of how to write a simple cache dataware,
+ * // check out the project README.
+ * router.useData('cache', duration => {
+ *     // duration is the number of seconds
+ *     // &lt;cache logic goes here>
+ *     return cache_middleware;
+ * });
+ *
+ * // We default to a 60 second cache.
+ * router.defaultData('cache', 60);
+ *
+ * router.get('/', ctx => {
+ *     ctx.body = 'This uses the default cache of 60 seconds: ' + Date.now();
+ * });
+ *
+ * router.get('/fast', {cache: 5}, ctx => {
+ *     ctx.body = 'This is only cached for 5 seconds: ' + Date.now();
+ * });
+ *
+ * @param {String} key The data key
+ * @param {Object} value The default value to set. `undefined` to remove.
+ * @returns {Router} The Router
+ */
+Router.prototype.defaultData = function(key, value) {
+	if ( typeof key !== 'string' )
+		throw new TypeError('key must be a string');
+
+	if ( value === undefined )
+		delete this.dataware_default[key];
+	else
+		this.dataware_default[key] = value;
+
+	this._update();
+	return this;
+}
+
+/**
  * This allows you to override the order in which data-based middleware are
  * applied. You can also provide this value when defining your data-based
  * middleware constructors with {@link Router#useData}.
@@ -1305,7 +1355,7 @@ Router.compose = compose;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.2</a> on Mon Oct 14 2019 22:43:58 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Wed Feb 12 2020 02:39:17 GMT-0500 (Eastern Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

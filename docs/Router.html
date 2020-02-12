@@ -27,7 +27,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/FrankerFaceZ/api-router" >GitHub</a></h2><h3>Classes</h3><ul><li><a href="Router.html">Router</a><ul class='methods'><li data-type='method'><a href="Router.html#defaultData">defaultData</a></li><li data-type='method'><a href="Router.html#METHOD">METHOD</a></li><li data-type='method'><a href="Router.html#middleware">middleware</a></li><li data-type='method'><a href="Router.html#mount">mount</a></li><li data-type='method'><a href="Router.html#nest">nest</a></li><li data-type='method'><a href="Router.html#param">param</a></li><li data-type='method'><a href="Router.html#register">register</a></li><li data-type='method'><a href="Router.html#setDataExclusive">setDataExclusive</a></li><li data-type='method'><a href="Router.html#sortData">sortData</a></li><li data-type='method'><a href="Router.html#urlFor">urlFor</a></li><li data-type='method'><a href="Router.html#use">use</a></li><li data-type='method'><a href="Router.html#useData">useData</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-composer.html">composer</a><ul class='methods'><li data-type='method'><a href="module-composer.html#~compose">compose</a></li></ul></li><li><a href="module-mount.html">mount</a><ul class='methods'><li data-type='method'><a href="module-mount.html#~Mount">Mount</a></li></ul></li></ul>
 </nav>
 
 <div id="main">
@@ -565,6 +565,210 @@
 
     
 
+    <h4 class="name" id="defaultData"><span class="type-signature"></span>defaultData<span class="signature">(key, value)</span><span class="type-signature"> &rarr; {<a href="Router.html">Router</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line997">line 997</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    <p>This allows you to set default data which is used for all routes that do not
+have existing data set for a specific data-based middleware.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// For an example of how to write a simple cache dataware,
+// check out the project README.
+router.useData('cache', duration => {
+    // duration is the number of seconds
+    // &lt;cache logic goes here>
+    return cache_middleware;
+});
+
+// We default to a 60 second cache.
+router.defaultData('cache', 60);
+
+router.get('/', ctx => {
+    ctx.body = 'This uses the default cache of 60 seconds: ' + Date.now();
+});
+
+router.get('/fast', {cache: 5}, ctx => {
+    ctx.body = 'This is only cached for 5 seconds: ' + Date.now();
+});</code></pre>
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The data key</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>The default value to set. <code>undefined</code> to remove.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The Router</p>
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Router.html">Router</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="METHOD"><span class="type-signature"></span>METHOD<span class="signature">(name<span class="signature-attributes">opt</span>, path, options<span class="signature-attributes">opt</span>, &hellip;middleware)</span><span class="type-signature"> &rarr; {<a href="Router.html">Router</a>}</span></h4>
 
     
@@ -577,7 +781,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line746">line 746</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line755">line 755</a>
     </li></ul></dd>
     
 
@@ -931,7 +1135,7 @@ expression generated by <code>path-to-regexp</code>.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line166">line 166</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line167">line 167</a>
     </li></ul></dd>
     
 
@@ -1046,7 +1250,7 @@ app.use(router.middleware())</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1058">line 1058</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1108">line 1108</a>
     </li></ul></dd>
     
 
@@ -1288,7 +1492,7 @@ function correctly if the built-in mount middleware is disabled.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1113">line 1113</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1163">line 1163</a>
     </li></ul></dd>
     
 
@@ -1504,7 +1708,7 @@ router.nest(users);</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1029">line 1029</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1079">line 1079</a>
     </li></ul></dd>
     
 
@@ -1697,7 +1901,7 @@ router.get('/user/:userID', ctx => {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line799">line 799</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line808">line 808</a>
     </li></ul></dd>
     
 
@@ -2037,7 +2241,7 @@ router.get('/user/:userID', ctx => {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line995">line 995</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1045">line 1045</a>
     </li></ul></dd>
     
 
@@ -2255,7 +2459,7 @@ the provided key should be exclusive.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line971">line 971</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1021">line 1021</a>
     </li></ul></dd>
     
 
@@ -2472,7 +2676,7 @@ execute first.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1199">line 1199</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line1249">line 1249</a>
     </li></ul></dd>
     
 
@@ -2913,7 +3117,7 @@ will be added as a query parameter.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line849">line 849</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line858">line 858</a>
     </li></ul></dd>
     
 
@@ -3131,7 +3335,7 @@ router.use(anotherRouter);</code></pre>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line936">line 936</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line945">line 945</a>
     </li></ul></dd>
     
 
@@ -3431,7 +3635,7 @@ sorting to determine which to apply first. Lower values execute first.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line104">line 104</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line105">line 105</a>
     </li></ul></dd>
     
 
@@ -3681,7 +3885,7 @@ data-ware middleware.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="router.js.html">router.js</a>, <a href="router.js.html#line83">line 83</a>
+        <a href="router.js.html">router.js</a>, <a href="router.js.html#line84">line 84</a>
     </li></ul></dd>
     
 
@@ -3877,7 +4081,7 @@ as responses to <code>OPTIONS</code> requests.</p>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.2</a> on Mon Oct 14 2019 22:43:58 GMT-0400 (Eastern Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Wed Feb 12 2020 02:39:17 GMT-0500 (Eastern Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
