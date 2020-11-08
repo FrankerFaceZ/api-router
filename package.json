@@ -47,7 +47,7 @@
 		"rimraf": "^3.0.0"
 	},
 	"dependencies": {
-		"find-my-way": "^2.2.1",
+		"find-my-way": "^2.2.5",
 		"methods": "^1.1.2",
 		"path-to-regexp": "^3.2.0",
 		"reusify": "^1.0.4"
