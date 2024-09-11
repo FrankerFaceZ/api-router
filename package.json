@@ -49,7 +49,7 @@
 	"dependencies": {
 		"find-my-way": "^2.2.1",
 		"methods": "^1.1.2",
-		"path-to-regexp": "^3.2.0",
+		"path-to-regexp": "^8.0.0",
 		"reusify": "^1.0.4"
 	},
 	"engines": {
